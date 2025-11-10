@@ -15,9 +15,11 @@ import (
 )
 
 func (ctrl *AuthController) SignUp(c *gin.Context) {
-	body, errBind := request.GetBody[dto.SignUp](c, ctrl.validate)
-	if errBind != nil {
-		response.ResValidationErr(c, ctrl.logger, errBind)
+	res := response.New(c, ctrl.logger)
+
+	body, errValidation := request.GetBody[dto.SignUp](c, ctrl.validate)
+	if errValidation != nil {
+		res.ResErrValidation(errValidation)
 		return
 	}
 
@@ -26,36 +28,38 @@ func (ctrl *AuthController) SignUp(c *gin.Context) {
 	// Username must be unique
 	user, err := ctrl.userSvc.FindByUsername(body.Username)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user != nil {
-		response.ResErr(c, ctrl.logger, http.StatusConflict, errors.New("duplicate username"), "username has been registered")
+		err := errors.New("username has been registered")
+		res.ResErr(http.StatusConflict, err, err.Error())
 		return
 	}
 
 	// Email must be unique
 	user, err = ctrl.userSvc.FindByEmail(body.Email)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user != nil {
-		response.ResErr(c, ctrl.logger, http.StatusConflict, errors.New("duplicate email"), "email has been registered")
+		err := errors.New("email has been registered")
+		res.ResErr(http.StatusConflict, err, err.Error())
 		return
 	}
 
 	// hash password
 	pwd, err := ctrl.authSvc.HashPassword(body.Password)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	// insert user data
 	jwtVersion, err := utils.GenerateRandomBytes(8)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -70,14 +74,14 @@ func (ctrl *AuthController) SignUp(c *gin.Context) {
 		Role:       models.RoleUser,
 	}
 	if err := ctrl.userSvc.Create(&newUser); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	// create verification data
 	data, token, err := ctrl.authSvc.CreateVerificationToken(ctx, newUser.ID.String())
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -90,15 +94,12 @@ func (ctrl *AuthController) SignUp(c *gin.Context) {
 		Code: data.Code,
 	},
 	); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
-	// set response
-	c.JSON(http.StatusCreated, gin.H{
-		"token": token,
-		"message": fmt.Sprintf("An email has been sent to %s. Please follow the instruction to verify your account.",
-			newUser.Email,
-		)},
-	)
+	res.ResOk(gin.H{
+		"token":   token,
+		"message": fmt.Sprintf("An email has been sent to %s. Please follow the instruction to verify your account.", newUser.Email),
+	})
 }

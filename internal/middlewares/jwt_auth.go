@@ -7,7 +7,6 @@ import (
 	"kingcom_api/internal/response"
 	authservice "kingcom_api/internal/services/authService"
 	cacheservice "kingcom_api/internal/services/cache_service"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -34,17 +33,19 @@ func NewJwtAuthMiddleware(
 func (m *JwtAuthMiddleware) Setup() {}
 
 func (m *JwtAuthMiddleware) Handler(c *gin.Context) {
+	res := response.New(c, m.logger)
+
 	authorization := c.GetHeader("Authorization")
 	if authorization == "" {
 		err := errors.New("authorization header is empty")
-		response.ResErr(c, m.logger, http.StatusUnauthorized, err, "")
+		res.ResErrUnauthorized(err)
 		return
 	}
 
 	const bearerPrefix = "Bearer "
 	if !strings.HasPrefix(authorization, bearerPrefix) {
 		err := errors.New("invalid bearer format")
-		response.ResErr(c, m.logger, http.StatusUnauthorized, err, "")
+		res.ResErrUnauthorized(err)
 		return
 	}
 
@@ -52,12 +53,12 @@ func (m *JwtAuthMiddleware) Handler(c *gin.Context) {
 
 	payload, err := m.jwtSvc.VerifyJwt(tokenStr)
 	if err != nil {
-		response.ResErr(c, m.logger, http.StatusUnauthorized, err, "")
+		res.ResErrUnauthorized(err)
 		return
 	}
 
 	if _, err := m.cacheSvc.FindAccessToken(c.Request.Context(), payload.Jti); err != nil {
-		response.ResErr(c, m.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 

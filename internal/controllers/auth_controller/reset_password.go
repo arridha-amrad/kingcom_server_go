@@ -1,6 +1,7 @@
 package authcontroller
 
 import (
+	"errors"
 	"kingcom_api/internal/dto"
 	"kingcom_api/internal/request"
 	"kingcom_api/internal/response"
@@ -12,9 +13,11 @@ import (
 )
 
 func (ctrl *AuthController) ResetPassword(c *gin.Context) {
+	res := response.New(c, ctrl.logger)
+
 	body, errValidation := request.GetBody[dto.ResetPassword](c, ctrl.validate)
 	if errValidation != nil {
-		response.ResValidationErr(c, ctrl.logger, errValidation)
+		res.ResErrValidation(errValidation)
 		return
 	}
 
@@ -24,41 +27,42 @@ func (ctrl *AuthController) ResetPassword(c *gin.Context) {
 	// find pwdReset data in redis
 	payload, err := ctrl.cacheSvc.FindPasswordResetToken(ctx, hashedToken)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	// find the user
 	userId, err := uuid.Parse(payload.UserId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	user, err := ctrl.userSvc.FindById(userId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user == nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "user not found")
+		err := errors.New("user not found")
+		res.ResErr(http.StatusNotFound, err, err.Error())
 		return
 	}
 
 	// hash password
 	newPassword, err := ctrl.authSvc.HashPassword(body.Password)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	// update user password and its jwtVersion
 	newJwtVersion, err := utils.GenerateRandomBytes(4)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if err := ctrl.userSvc.UpdatePassword(userId, newPassword, newJwtVersion); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -67,6 +71,6 @@ func (ctrl *AuthController) ResetPassword(c *gin.Context) {
 		ctrl.logger.Error(err)
 	}
 
-	// set response
-	c.JSON(http.StatusOK, gin.H{"message": "Reset password is successful"})
+	res.ResOk(gin.H{"message": "Reset password is successful"})
+
 }

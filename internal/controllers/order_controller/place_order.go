@@ -1,10 +1,10 @@
 package ordercontroller
 
 import (
-	"kingcom_api/internal/controllers/handler"
 	"kingcom_api/internal/dto"
 	"kingcom_api/internal/models"
 	"kingcom_api/internal/request"
+	"kingcom_api/internal/response"
 	"net/http"
 	"time"
 
@@ -14,23 +14,23 @@ import (
 
 func (ctrl *OrderController) PlaceOrder(c *gin.Context) {
 
-	hh := handler.NewHandlerHelper(c, ctrl.logger)
+	res := response.New(c, ctrl.logger)
 
 	body, errV := request.GetBody[dto.CreateOrder](c, ctrl.validator)
 	if errV != nil {
-		hh.ResErrValidation(errV)
+		res.ResErrValidation(errV)
 		return
 	}
 
 	tp, err := request.ExtractAccessTokenPayload(c)
 	if err != nil {
-		hh.ResErrUnauthorized(err)
+		res.ResErrUnauthorized(err)
 		return
 	}
 
 	userId, err := uuid.Parse(tp.UserId)
 	if err != nil {
-		hh.ResInternalServerErr(err)
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -42,15 +42,15 @@ func (ctrl *OrderController) PlaceOrder(c *gin.Context) {
 		cartIds = append(cartIds, item.CartID)
 		prod, err := ctrl.productService.FindById(item.ProductID)
 		if err != nil {
-			hh.ResInternalServerErr(err)
+			res.ResInternalServerErr(err)
 			return
 		}
 		if prod == nil {
-			hh.ResErr(http.StatusNotFound, err, "product not found")
+			res.ResErr(http.StatusNotFound, err, "product not found")
 			return
 		}
 		if prod.Stock <= 0 {
-			hh.ResErr(http.StatusConflict, err, "product out of stock")
+			res.ResErr(http.StatusConflict, err, "product out of stock")
 			return
 		}
 	}
@@ -81,7 +81,7 @@ func (ctrl *OrderController) PlaceOrder(c *gin.Context) {
 	}
 
 	if err := ctrl.orderService.PlaceOrder(&order, cartIds); err != nil {
-		hh.ResInternalServerErr(err)
+		res.ResInternalServerErr(err)
 		return
 	}
 

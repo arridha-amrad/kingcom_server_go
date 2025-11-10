@@ -1,34 +1,33 @@
 package cartcontroller
 
 import (
-	"kingcom_api/internal/controllers/handler"
 	"kingcom_api/internal/dto"
 	"kingcom_api/internal/models"
 	"kingcom_api/internal/request"
-	"net/http"
+	"kingcom_api/internal/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func (ctrl *CartController) AddToCart(c *gin.Context) {
-	hh := handler.NewHandlerHelper(c, ctrl.logger)
+	res := response.New(c, ctrl.logger)
 
 	body, errV := request.GetBody[dto.AddToCart](c, ctrl.validator)
 	if errV != nil {
-		hh.ResErrValidation(errV)
+		res.ResErrValidation(errV)
 		return
 	}
 
 	tp, err := request.ExtractAccessTokenPayload(c)
 	if err != nil {
-		hh.ResInternalServerErr(err)
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	userId, err := uuid.Parse(tp.UserId)
 	if err != nil {
-		hh.ResInternalServerErr(err)
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -39,9 +38,9 @@ func (ctrl *CartController) AddToCart(c *gin.Context) {
 	}
 
 	if err := ctrl.cartService.Add(&cart); err != nil {
-		hh.ResInternalServerErr(err)
+		res.ResInternalServerErr(err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Added to cart"})
+	res.ResCreated("Added to cart")
 }

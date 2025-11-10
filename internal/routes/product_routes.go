@@ -4,9 +4,6 @@ import (
 	productcontroller "kingcom_api/internal/controllers/product_controller"
 	"kingcom_api/internal/lib"
 	"kingcom_api/internal/middlewares"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type ProductRoutes struct {
@@ -33,11 +30,8 @@ func NewProductRoutes(
 func (r *ProductRoutes) Setup() {
 	rtr := r.handler.Gin.Group("/api/products")
 	{
-		rtr.GET("/healthz", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{"message": "product routes"})
-		})
 		rtr.POST("", r.jwtAuth.Handler, r.ctrl.CreateProduct)
 		rtr.GET("", r.ctrl.FetchAllProducts)
-		rtr.GET(":slug", r.ctrl.FetchProductDetails)
+		rtr.GET(":slug", r.ctrl.FetchOneWithDetails)
 	}
 }

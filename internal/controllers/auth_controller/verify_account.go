@@ -15,9 +15,11 @@ import (
 )
 
 func (ctrl *AuthController) VerifyNewAccount(c *gin.Context) {
+	res := response.New(c, ctrl.logger)
+
 	body, errValidation := request.GetBody[dto.VerifyNewAccount](c, ctrl.validate)
 	if errValidation != nil {
-		response.ResValidationErr(c, ctrl.logger, errValidation)
+		res.ResErrValidation(errValidation)
 		return
 	}
 
@@ -27,18 +29,18 @@ func (ctrl *AuthController) VerifyNewAccount(c *gin.Context) {
 	// find verification data in redis
 	payload, err := ctrl.cacheSvc.FindVerificationToken(ctx, hashedToken)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	// compare the code
 	if payload.Code != body.Code {
-		response.ResErr(c, ctrl.logger, http.StatusUnauthorized, errors.New("code not match"), "")
+		res.ResErrUnauthorized(errors.New("invalid code"))
 		return
 	}
 	userId, err := uuid.Parse(payload.UserId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -47,21 +49,22 @@ func (ctrl *AuthController) VerifyNewAccount(c *gin.Context) {
 	// find the user
 	user, err := ctrl.userSvc.FindById(userId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user == nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, errors.New("user not found"), "user not found")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user.IsVerified {
-		response.ResErr(c, ctrl.logger, http.StatusConflict, errors.New("already verified"), "account has been verified")
+		err := errors.New("unverified account")
+		res.ResErr(http.StatusConflict, err, err.Error())
 		return
 	}
 
 	// mark the user as verified
 	if err := ctrl.userSvc.VerifyUser(userId); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -73,7 +76,7 @@ func (ctrl *AuthController) VerifyNewAccount(c *gin.Context) {
 		user.JwtVersion,
 	)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -88,7 +91,8 @@ func (ctrl *AuthController) VerifyNewAccount(c *gin.Context) {
 		tokens.RefreshToken,
 		constants.REFRESH_TOKEN_MAX_AGE, "/", "", os.Getenv("GO_ENV") == "production", true)
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.JSON(http.StatusOK, gin.H{
+
+	res.ResOk(gin.H{
 		"user":  user,
 		"token": tokens.AccessToken,
 	})

@@ -11,6 +11,7 @@ import (
 	"kingcom_api/internal/services"
 
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 )
 
 var CommonModule = fx.Options(
@@ -20,9 +21,9 @@ var CommonModule = fx.Options(
 	lib.Module,
 	middlewares.Module,
 	routes.Module,
-	// fx.WithLogger(func() fxevent.Logger {
-	// 	return lib.GetLogger().GetFxLogger()
-	// }),
+	fx.WithLogger(func() fxevent.Logger {
+		return lib.GetLogger().GetFxLogger()
+	}),
 	fx.Invoke(registerHooks),
 )
 

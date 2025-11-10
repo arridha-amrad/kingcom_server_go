@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (ctrl *ProductController) FetchProductDetails(c *gin.Context) {
+func (ctrl *ProductController) FetchOneWithDetails(c *gin.Context) {
 	hh := response.New(c, ctrl.logger)
 	slug := c.Param("slug")
 
