@@ -15,9 +15,11 @@ import (
 )
 
 func (ctrl *ShippingController) CalcCost(c *gin.Context) {
+	res := response.New(c, ctrl.logger)
+
 	body, errValidation := request.GetBody[dto.CalcCost](c, ctrl.validator)
 	if errValidation != nil {
-		response.ResValidationErr(c, ctrl.logger, errValidation)
+		res.ResErrValidation(errValidation)
 		return
 	}
 
@@ -30,8 +32,7 @@ func (ctrl *ShippingController) CalcCost(c *gin.Context) {
 
 	req, err := http.NewRequest("POST", calcCostUrl, strings.NewReader(form.Encode()))
 	if err != nil {
-		ctrl.logger.Info("failed to create post req to calc the cost")
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -42,20 +43,20 @@ func (ctrl *ShippingController) CalcCost(c *gin.Context) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	var cr CostResponse
 	if err := json.Unmarshal(respBody, &cr); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 

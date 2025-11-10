@@ -11,9 +11,12 @@ import (
 )
 
 func (ctrl *ShippingController) FetchProvinces(c *gin.Context) {
+
+	res := response.New(c, ctrl.logger)
+
 	data, err := ctrl.cacheService.FindShippingProvinces(c.Request.Context())
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -23,11 +26,11 @@ func (ctrl *ShippingController) FetchProvinces(c *gin.Context) {
 		url := fmt.Sprintf("%s/province", destinationUrl)
 		body, err := ctrl.RunRequestToRajaOngkir(url, ctrl.env.RajaOngkirAPIKey)
 		if err != nil {
-			response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "Failed to fetch provinces")
+			res.ResInternalServerErr(err)
 			return
 		}
 		if err := json.Unmarshal(body, &ror); err != nil {
-			response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+			res.ResInternalServerErr(err)
 			return
 		}
 
@@ -44,7 +47,7 @@ func (ctrl *ShippingController) FetchProvinces(c *gin.Context) {
 				c.Request.Context(),
 				params,
 			); err != nil {
-				response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+				res.ResInternalServerErr(err)
 				return
 			}
 		}

@@ -1,6 +1,7 @@
 package authcontroller
 
 import (
+	"errors"
 	"kingcom_api/internal/request"
 	"kingcom_api/internal/response"
 	"net/http"
@@ -10,23 +11,34 @@ import (
 )
 
 func (ctrl *AuthController) Me(c *gin.Context) {
+
+	res := response.New(c, ctrl.logger)
+
 	payload, err := request.ExtractAccessTokenPayload(c)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusBadRequest, err, "")
+		res.ResErrUnauthorized(err)
 		return
 	}
 
 	userId, err := uuid.Parse(payload.UserId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	user, err := ctrl.userSvc.FindById(userId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "")
+		res.ResInternalServerErr(err)
+		return
+	}
+	if user == nil {
+		err := errors.New("user not found")
+		res.ResErr(http.StatusNotFound, err, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	res.ResOk(gin.H{
+		"user": user,
+	})
+
 }

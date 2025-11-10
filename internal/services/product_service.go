@@ -14,7 +14,7 @@ type productService struct {
 }
 
 type ProductService interface {
-	FindMany() (*[]models.Product, error)
+	FindMany(filter repositories.FindManyFilter) (*repositories.ProductsWithTotal, error)
 	FindBySlug(slug string) (*models.Product, error)
 	InsertProduct(product *models.Product) error
 	FindById(id uuid.UUID) (*models.Product, error)
@@ -31,8 +31,8 @@ func NewProductService(
 	}
 }
 
-func (p *productService) FindMany() (*[]models.Product, error) {
-	return p.prodRepo.FindMany()
+func (p *productService) FindMany(filter repositories.FindManyFilter) (*repositories.ProductsWithTotal, error) {
+	return p.prodRepo.FindMany(filter)
 }
 
 func (p *productService) FindBySlug(slug string) (*models.Product, error) {

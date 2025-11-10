@@ -14,35 +14,38 @@ import (
 )
 
 func (ctrl *ProductController) CreateProduct(c *gin.Context) {
+
+	res := response.New(c, ctrl.logger)
+
 	body, errValidation := request.GetBody[dto.CreateProduct](c, ctrl.validator)
 	if errValidation != nil {
-		response.ResValidationErr(c, ctrl.logger, errValidation)
+		res.ResErrValidation(errValidation)
 		return
 	}
 
 	tp, err := request.ExtractAccessTokenPayload(c)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusUnauthorized, err, "")
+		res.ResErrUnauthorized(err)
 		return
 	}
 
 	userId, err := uuid.Parse(tp.UserId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	user, err := ctrl.userService.FindById(userId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user == nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "")
+		res.ResErr(http.StatusNotFound, err, "")
 		return
 	}
 	if user.Role != models.RoleAdmin {
-		response.ResErr(c, ctrl.logger, http.StatusForbidden, err, "You are not an admin")
+		res.ResErr(http.StatusForbidden, err, "")
 		return
 	}
 
@@ -54,12 +57,12 @@ func (ctrl *ProductController) CreateProduct(c *gin.Context) {
 	newProductSlug := utils.ToSlug(body.Name)
 	existingProduct, err := ctrl.productService.FindBySlug(newProductSlug)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if existingProduct != nil {
 		err = errors.New("slug has been used")
-		response.ResErr(c, ctrl.logger, http.StatusConflict, err, err.Error())
+		res.ResErr(http.StatusConflict, err, err.Error())
 		return
 	}
 
@@ -77,9 +80,10 @@ func (ctrl *ProductController) CreateProduct(c *gin.Context) {
 	}
 
 	if err := ctrl.productService.InsertProduct(&product); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "New product created successfully"})
+	res.ResCreated("New product created successfully")
+
 }

@@ -10,16 +10,21 @@ import (
 )
 
 func (ctrl *ShippingController) GetDistricts(c *gin.Context) {
+	res := response.New(c, ctrl.logger)
+
 	cityId := c.Param("cityID")
+
 	url := fmt.Sprintf("%s/district/%s", destinationUrl, cityId)
+
 	body, err := ctrl.RunRequestToRajaOngkir(url, ctrl.env.RajaOngkirAPIKey)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "failed to fetch districts")
+		res.ResInternalServerErr(err)
 		return
 	}
+
 	var ror RajaOngkirResponse
 	if err := json.Unmarshal(body, &ror); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"districts": ror.Data})

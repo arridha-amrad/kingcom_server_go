@@ -1,6 +1,7 @@
 package authcontroller
 
 import (
+	"errors"
 	"kingcom_api/internal/constants"
 	"kingcom_api/internal/request"
 	"kingcom_api/internal/response"
@@ -13,9 +14,11 @@ import (
 )
 
 func (ctrl *AuthController) RefreshToken(c *gin.Context) {
+	res := response.New(c, ctrl.logger)
+
 	refToken, err := request.GetRefreshToken(c)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusUnauthorized, err, "")
+		res.ResErrUnauthorized(err)
 		return
 	}
 
@@ -25,33 +28,34 @@ func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 	// find refresh token
 	payload, err := ctrl.cacheSvc.FindRefreshToken(ctx, hashedToken)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
 	// find the user
 	userId, err := uuid.Parse(payload.UserId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	user, err := ctrl.userSvc.FindById(userId)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user == nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "user not found")
+		err := errors.New("user not found")
+		res.ResErr(http.StatusNotFound, err, err.Error())
 		return
 	}
 
 	// delete old auth tokens
 	if err := ctrl.cacheSvc.DeleteAccessToken(ctx, payload.Jti); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if err := ctrl.cacheSvc.DeleteRefreshToken(ctx, refToken); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -62,7 +66,7 @@ func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 		user.JwtVersion,
 	)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -73,7 +77,8 @@ func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 		tokens.RefreshToken,
 		constants.REFRESH_TOKEN_MAX_AGE, "/", "", os.Getenv("GO_ENV") == "production", true,
 	)
-	c.JSON(http.StatusOK, gin.H{
+
+	res.ResOk(gin.H{
 		"token": tokens.AccessToken,
 	})
 }

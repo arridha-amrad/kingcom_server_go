@@ -13,30 +13,34 @@ import (
 )
 
 func (ctrl *AuthController) Login(c *gin.Context) {
-	body, errBind := request.GetBody[dto.Login](c, ctrl.validate)
-	if errBind != nil {
-		response.ResValidationErr(c, ctrl.logger, errBind)
+
+	res := response.New(c, ctrl.logger)
+
+	body, errValidation := request.GetBody[dto.Login](c, ctrl.validate)
+	if errValidation != nil {
+		res.ResErrValidation(errValidation)
 		return
 	}
 
 	// find user
 	user, err := ctrl.userSvc.FindByEmailOrUsername(body.Identity)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user == nil {
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, "")
+		res.ResErr(http.StatusNotFound, err, "user not found")
 		return
 	}
 	if !user.IsVerified {
-		response.ResErr(c, ctrl.logger, http.StatusConflict, errors.New("unverified"), "please verify your account first")
+		err := errors.New("please verify your account first")
+		res.ResErr(http.StatusUnauthorized, err, err.Error())
 		return
 	}
 
 	// compare password
 	if err := ctrl.authSvc.VerifyPassword(user.Password, body.Password); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusUnauthorized, err, "invalid credentials")
+		res.ResErr(http.StatusUnauthorized, err, "invalid credentials")
 		return
 	}
 
@@ -47,7 +51,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		user.JwtVersion,
 	)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -58,8 +62,10 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		tokens.RefreshToken,
 		constants.REFRESH_TOKEN_MAX_AGE, "/", "", os.Getenv("GO_ENV") == "production", true,
 	)
-	c.JSON(http.StatusOK, gin.H{
+
+	res.ResOk(gin.H{
 		"user":  user,
 		"token": tokens.AccessToken,
 	})
+
 }

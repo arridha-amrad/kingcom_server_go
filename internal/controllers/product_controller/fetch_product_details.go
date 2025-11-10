@@ -8,11 +8,15 @@ import (
 )
 
 func (ctrl *ProductController) FetchProductDetails(c *gin.Context) {
+	hh := response.New(c, ctrl.logger)
 	slug := c.Param("slug")
+
 	product, err := ctrl.productService.FindBySlug(slug)
+
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		hh.ResInternalServerErr(err)
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"product": product})
 }

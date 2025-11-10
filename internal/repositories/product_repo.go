@@ -16,7 +16,7 @@ type productRepository struct {
 
 type ProductRepository interface {
 	InsertProduct(product *models.Product) error
-	FindMany() (*[]models.Product, error)
+	FindMany(filter FindManyFilter) (*ProductsWithTotal, error)
 	FindById(id uuid.UUID) (*models.Product, error)
 	FindBySlug(slug string) (*models.Product, error)
 }
@@ -35,13 +35,29 @@ func (p *productRepository) InsertProduct(product *models.Product) error {
 	return p.Create(product).Error
 }
 
-func (p productRepository) FindMany() (*[]models.Product, error) {
+func (p productRepository) FindMany(filter FindManyFilter) (*ProductsWithTotal, error) {
 	var products []models.Product
-	if err := p.Preload("Images").
+	var totalProducts int64
+
+	query := p.DB.Model(&models.Product{}).Where("name ILIKE ?", "%"+filter.Name+"%")
+
+	if err := query.Count(&totalProducts).Error; err != nil {
+		return nil, err
+	}
+
+	if err := query.Preload("Images").
+		Limit(filter.Limit).
+		Offset(filter.Offset).
+		Order("created_at DESC").
 		Find(&products).Error; err != nil {
 		return nil, err
 	}
-	return &products, nil
+
+	result := ProductsWithTotal{
+		Products: products,
+		Total:    int(totalProducts),
+	}
+	return &result, nil
 }
 
 func (p productRepository) FindById(id uuid.UUID) (*models.Product, error) {
@@ -67,4 +83,15 @@ func (p *productRepository) FindBySlug(slug string) (*models.Product, error) {
 		return nil, err
 	}
 	return &product, nil
+}
+
+type FindManyFilter struct {
+	Name   string
+	Limit  int
+	Offset int
+}
+
+type ProductsWithTotal struct {
+	Products []models.Product `json:"products"`
+	Total    int              `json:"total"`
 }

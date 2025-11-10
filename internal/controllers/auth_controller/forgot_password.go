@@ -13,9 +13,12 @@ import (
 )
 
 func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
+
+	res := response.New(c, ctrl.logger)
+
 	body, errValidation := request.GetBody[dto.ForgotPassword](c, ctrl.validate)
 	if errValidation != nil {
-		response.ResValidationErr(c, ctrl.logger, errValidation)
+		res.ResErrValidation(errValidation)
 		return
 	}
 
@@ -24,23 +27,24 @@ func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
 	// find the user
 	user, err := ctrl.userSvc.FindByEmail(body.Email)
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 	if user == nil {
 		err := errors.New("user not found")
-		response.ResErr(c, ctrl.logger, http.StatusNotFound, err, err.Error())
+		res.ResErr(http.StatusNotFound, err, err.Error())
 		return
 	}
 	if !user.IsVerified {
-		response.ResErr(c, ctrl.logger, http.StatusBadRequest, errors.New("unverified user"), "please verify your account first")
+		err := errors.New("please verify your account first")
+		res.ResErr(http.StatusUnauthorized, err, err.Error())
 		return
 	}
 
 	// generate token for pwd reset
 	token, err := ctrl.authSvc.CreatePwdResetToken(ctx, user.ID.String())
 	if err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
@@ -53,12 +57,12 @@ func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
 				Email: user.Email,
 			},
 		}); err != nil {
-		response.ResErr(c, ctrl.logger, http.StatusInternalServerError, err, "")
+		res.ResInternalServerErr(err)
 		return
 	}
 
-	// set response
-	c.JSON(http.StatusOK, gin.H{
+	res.ResOk(gin.H{
 		"message": fmt.Sprintf("An email has been sent to %s. Please follow the instruction to reset your password", body.Email),
 	})
+
 }
