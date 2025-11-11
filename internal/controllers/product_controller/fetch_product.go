@@ -2,21 +2,20 @@ package productcontroller
 
 import (
 	"kingcom_api/internal/response"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (ctrl *ProductController) FetchOneWithDetails(c *gin.Context) {
-	hh := response.New(c, ctrl.logger)
+func (ctrl *ProductController) FetchProduct(c *gin.Context) {
+	res := response.New(c, ctrl.logger)
 	slug := c.Param("slug")
 
 	product, err := ctrl.productService.FindBySlug(slug)
 
 	if err != nil {
-		hh.ResInternalServerErr(err)
+		res.ResInternalServerErr(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"product": product})
+	res.ResOk(gin.H{"product": product})
 }

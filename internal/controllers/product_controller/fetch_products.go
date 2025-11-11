@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (ctrl *ProductController) FetchAllProducts(c *gin.Context) {
+func (ctrl *ProductController) FetchProducts(c *gin.Context) {
 	res := response.New(c, ctrl.logger)
 
 	name := c.DefaultQuery("name", "")

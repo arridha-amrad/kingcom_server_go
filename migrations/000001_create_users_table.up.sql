@@ -1,7 +1,3 @@
--- Pastikan extension UUID aktif
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
--- ENUM untuk role
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
@@ -10,7 +6,6 @@ BEGIN
 END
 $$;
 
--- ENUM untuk provider
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_provider') THEN
@@ -19,9 +14,8 @@ BEGIN
 END
 $$;
 
--- Tabel users
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP NULL,
@@ -35,5 +29,4 @@ CREATE TABLE IF NOT EXISTS users (
     is_verified BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- Index tambahan untuk deleted_at (soft delete)
 CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users (deleted_at);
