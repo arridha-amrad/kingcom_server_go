@@ -16,7 +16,7 @@ type authService struct {
 
 type AuthService interface {
 	CreatePwdResetToken(ctx context.Context, userId string) (string, error)
-	CreateAuthTokens(ctx context.Context, userId, jwtVersion string) (*AuthTokens, error)
+	CreateAuthTokens(ctx context.Context, userId, jwtVersion, role string) (*AuthTokens, error)
 	DeleteAuthTokens(ctx context.Context, refToken, jti string) error
 	CreateAndStoreRefToken(ctx context.Context, userId, jti string) (string, error)
 	CreateVerificationToken(ctx context.Context, userId string) (*cacheservice.VerificationTokenPayload, string, error)
@@ -24,7 +24,7 @@ type AuthService interface {
 	VerifyJwt(token string) (*JWTPayload, error)
 	HashPassword(plainPassword string) (string, error)
 	VerifyPassword(hashedPassword string, plainPassword string) error
-	CreateAndStoreAccessToken(ctx context.Context, jti, userId, jwtVersion string) (string, error)
+	CreateAndStoreAccessToken(ctx context.Context, jti, userId, jwtVersion, role string) (string, error)
 }
 
 func New(

@@ -30,7 +30,7 @@ func NewProductRoutes(
 func (r *ProductRoutes) Setup() {
 	rtr := r.handler.Gin.Group("/api/products")
 	{
-		rtr.POST("", r.jwtAuth.Handler, r.ctrl.CreateProduct)
+		rtr.POST("", r.jwtAuth.Handler, r.jwtAuth.MustAdmin, r.ctrl.CreateProduct)
 		rtr.GET("", r.ctrl.FetchProducts)
 		rtr.GET(":slug", r.ctrl.FetchProduct)
 	}

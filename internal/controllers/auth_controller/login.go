@@ -49,6 +49,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		c.Request.Context(),
 		user.ID.String(),
 		user.JwtVersion,
+		string(user.Role),
 	)
 	if err != nil {
 		res.ResInternalServerErr(err)

@@ -4,9 +4,12 @@ import (
 	"errors"
 	"kingcom_api/internal/constants"
 	"kingcom_api/internal/lib"
+	"kingcom_api/internal/models"
+	"kingcom_api/internal/request"
 	"kingcom_api/internal/response"
 	authservice "kingcom_api/internal/services/authService"
 	cacheservice "kingcom_api/internal/services/cache_service"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -65,4 +68,20 @@ func (m *JwtAuthMiddleware) Handler(c *gin.Context) {
 	c.Set(constants.ACCESS_TOKEN_PAYLOAD, payload)
 
 	c.Next()
+}
+
+func (m *JwtAuthMiddleware) MustAdmin(c *gin.Context) {
+	res := response.New(c, m.logger)
+	tp, err := request.ExtractAccessTokenPayload(c)
+	if err != nil {
+		res.ResErrUnauthorized(err)
+		return
+	}
+	if tp.Role == models.RoleAdmin {
+		c.Next()
+	} else {
+		err := errors.New("you are not an admin")
+		res.ResErr(http.StatusForbidden, err, err.Error())
+		return
+	}
 }

@@ -1,6 +1,10 @@
 package authservice
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"kingcom_api/internal/models"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type TokenPair struct {
 	Hashed string
@@ -8,9 +12,7 @@ type TokenPair struct {
 }
 
 type CustomClaims struct {
-	UserID     string `json:"userId"`
-	JTI        string `json:"jti"`
-	JwtVersion string `json:"jwtVersion"`
+	JWTPayload
 	jwt.RegisteredClaims
 }
 
@@ -35,4 +37,5 @@ type JWTPayload struct {
 	UserId     string
 	Jti        string
 	JwtVersion string
+	Role       models.Role
 }

@@ -64,6 +64,7 @@ func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 		ctx,
 		user.ID.String(),
 		user.JwtVersion,
+		string(user.Role),
 	)
 	if err != nil {
 		res.ResInternalServerErr(err)

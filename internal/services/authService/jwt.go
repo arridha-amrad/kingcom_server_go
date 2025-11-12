@@ -10,9 +10,7 @@ import (
 
 func (s *authService) CreateJWT(payload JWTPayload, secret, issuer string) (string, error) {
 	claims := CustomClaims{
-		UserID:     payload.UserId,
-		JTI:        payload.Jti,
-		JwtVersion: payload.JwtVersion,
+		JWTPayload: payload,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(constants.TTL.AccessToken)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -38,9 +36,10 @@ func (s *authService) VerifyJwt(token string) (*JWTPayload, error) {
 	}
 
 	return &JWTPayload{
-		UserId:     claims.UserID,
-		Jti:        claims.JTI,
+		UserId:     claims.UserId,
+		Jti:        claims.Jti,
 		JwtVersion: claims.JwtVersion,
+		Role:       claims.Role,
 	}, nil
 
 }

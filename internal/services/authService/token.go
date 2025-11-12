@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"kingcom_api/internal/models"
 	cacheservice "kingcom_api/internal/services/cache_service"
 	"kingcom_api/internal/utils"
 
@@ -25,13 +26,13 @@ func (s *authService) CreatePwdResetToken(ctx context.Context, userId string) (s
 	return tokenPair.Raw, nil
 }
 
-func (s *authService) CreateAuthTokens(ctx context.Context, userId, jwtVersion string) (*AuthTokens, error) {
+func (s *authService) CreateAuthTokens(ctx context.Context, userId, jwtVersion, role string) (*AuthTokens, error) {
 	jti := uuid.New().String()
 	refresh, err := s.CreateAndStoreRefToken(ctx, userId, jti)
 	if err != nil {
 		return nil, err
 	}
-	access, err := s.CreateAndStoreAccessToken(ctx, jti, userId, jwtVersion)
+	access, err := s.CreateAndStoreAccessToken(ctx, jti, userId, jwtVersion, role)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +58,8 @@ func (s *authService) CreateAndStoreRefToken(ctx context.Context, userId, jti st
 	return pair.Raw, nil
 }
 
-func (s *authService) CreateAndStoreAccessToken(ctx context.Context, jti, userId, jwtVersion string) (string, error) {
-	jwtPayload := JWTPayload{UserId: userId, JwtVersion: jwtVersion, Jti: jti}
+func (s *authService) CreateAndStoreAccessToken(ctx context.Context, jti, userId, jwtVersion, role string) (string, error) {
+	jwtPayload := JWTPayload{UserId: userId, JwtVersion: jwtVersion, Jti: jti, Role: models.Role(role)}
 	token, err := s.CreateJWT(jwtPayload, s.env.JwtSecret, s.env.AppTitle)
 	if err != nil {
 		return "", err

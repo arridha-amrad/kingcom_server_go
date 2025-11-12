@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"kingcom_api/internal/lib"
+	"kingcom_api/internal/models"
 	authservice "kingcom_api/internal/services/authService"
 	cacheservice "kingcom_api/internal/services/cache_service"
 	"kingcom_api/internal/utils"
@@ -66,11 +67,12 @@ func (s *AuthServiceSuite) TestCreatePwdResetToken() {
 func (s *AuthServiceSuite) TestCreateAuthTokens() {
 	userId := "123"
 	jwtVer := "v1"
+	role := models.RoleUser
 
 	s.mockCache.EXPECT().SaveRefreshToken(s.ctx, gomock.Any(), gomock.Any()).Return(nil)
 	s.mockCache.EXPECT().SaveAccessToken(s.ctx, gomock.Any(), gomock.Any()).Return(nil)
 
-	tokens, err := s.service.CreateAuthTokens(s.ctx, userId, jwtVer)
+	tokens, err := s.service.CreateAuthTokens(s.ctx, userId, jwtVer, string(role))
 	s.Nil(err)
 	s.NotNil(tokens)
 }
@@ -160,7 +162,7 @@ func (s *AuthServiceSuite) TestCreateAndStoreAccessToken() {
 		SaveAccessToken(s.ctx, gomock.Any(), gomock.Any()).
 		Return(nil)
 
-	token, err := s.service.CreateAndStoreAccessToken(s.ctx, "jti-1", "user123", "v1")
+	token, err := s.service.CreateAndStoreAccessToken(s.ctx, "jti-1", "user123", "v1", string(models.RoleUser))
 	s.NoError(err)
 	s.NotEmpty(token)
 }
