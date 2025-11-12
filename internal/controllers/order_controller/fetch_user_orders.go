@@ -28,5 +28,5 @@ func (o *OrderController) FetchUserOrders(c *gin.Context) {
 		return
 	}
 
-	res.ResOk(orders)
+	res.ResOk(gin.H{"orders": orders})
 }

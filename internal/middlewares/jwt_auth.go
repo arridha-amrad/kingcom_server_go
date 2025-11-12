@@ -61,7 +61,7 @@ func (m *JwtAuthMiddleware) Handler(c *gin.Context) {
 	}
 
 	if _, err := m.cacheSvc.FindAccessToken(c.Request.Context(), payload.Jti); err != nil {
-		res.ResInternalServerErr(err)
+		res.ResErrUnauthorized(err)
 		return
 	}
 
@@ -72,11 +72,14 @@ func (m *JwtAuthMiddleware) Handler(c *gin.Context) {
 
 func (m *JwtAuthMiddleware) MustAdmin(c *gin.Context) {
 	res := response.New(c, m.logger)
+
 	tp, err := request.ExtractAccessTokenPayload(c)
+
 	if err != nil {
 		res.ResErrUnauthorized(err)
 		return
 	}
+
 	if tp.Role == models.RoleAdmin {
 		c.Next()
 	} else {

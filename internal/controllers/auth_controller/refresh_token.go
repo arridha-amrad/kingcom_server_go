@@ -28,7 +28,7 @@ func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 	// find refresh token
 	payload, err := ctrl.cacheSvc.FindRefreshToken(ctx, hashedToken)
 	if err != nil {
-		res.ResInternalServerErr(err)
+		res.ResErrUnauthorized(err)
 		return
 	}
 
