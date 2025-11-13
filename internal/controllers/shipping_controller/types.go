@@ -6,8 +6,8 @@ type RajaOngkirResponse struct {
 }
 
 type ResponseData struct {
-	ID   int
-	Name string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type MetaResponse struct {

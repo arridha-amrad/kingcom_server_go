@@ -5,8 +5,8 @@ type SaveProvincesData struct {
 }
 
 type Province struct {
-	ID   int
-	Name string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type AccessTokenPayload struct {

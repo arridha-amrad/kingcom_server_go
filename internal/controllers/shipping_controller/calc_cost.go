@@ -60,5 +60,8 @@ func (ctrl *ShippingController) CalcCost(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"costs": cr.Data})
+	max := min(len(cr.Data), 10)
+	costs := cr.Data[:max]
+
+	c.JSON(http.StatusOK, gin.H{"costs": costs})
 }
