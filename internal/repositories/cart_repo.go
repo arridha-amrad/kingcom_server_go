@@ -19,6 +19,8 @@ type CartRepository interface {
 	Add(cart *models.Cart) error
 	FindWithProduct(userId uuid.UUID) (*[]models.Cart, error)
 	DeleteMany(ids []uuid.UUID) error
+	Delete(id uuid.UUID) error
+	FindById(id uuid.UUID) (*models.Cart, error)
 }
 
 func NewCartRepository(
@@ -33,6 +35,21 @@ func initRepo(db *lib.Database, logger *lib.Logger) CartRepository {
 		Database: db,
 		logger:   logger,
 	}
+}
+
+func (c *cartRepository) FindById(id uuid.UUID) (*models.Cart, error) {
+	var cart models.Cart
+	if err := c.DB.Where("id = ?", id).First(&cart).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &cart, nil
+}
+
+func (c *cartRepository) Delete(id uuid.UUID) error {
+	return c.DB.Where("id = ?", id).Delete(&models.Cart{}).Error
 }
 
 func (c *cartRepository) DeleteMany(ids []uuid.UUID) error {

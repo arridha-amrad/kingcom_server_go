@@ -26,7 +26,7 @@ func (ctrl *ShippingController) CalcCost(c *gin.Context) {
 	form := url.Values{}
 	form.Set("origin", strconv.Itoa(body.OriginID))
 	form.Set("destination", strconv.Itoa(body.DestinationID))
-	form.Set("weight", strconv.Itoa(body.Weight))
+	form.Set("weight", strconv.FormatFloat(body.Weight, 'f', 2, 64))
 	form.Set("courier", courier)
 	form.Set("price", price)
 

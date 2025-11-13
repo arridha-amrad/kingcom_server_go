@@ -14,6 +14,8 @@ type cartService struct {
 type CartService interface {
 	Add(cart *models.Cart) error
 	FindWithProduct(userId uuid.UUID) (*[]models.Cart, error)
+	Delete(id uuid.UUID) error
+	FindOne(id uuid.UUID) (*models.Cart, error)
 }
 
 func NewCartService(
@@ -30,4 +32,12 @@ func (c *cartService) Add(cart *models.Cart) error {
 
 func (c *cartService) FindWithProduct(userId uuid.UUID) (*[]models.Cart, error) {
 	return c.cartRepo.FindWithProduct(userId)
+}
+
+func (c *cartService) Delete(id uuid.UUID) error {
+	return c.cartRepo.Delete(id)
+}
+
+func (c *cartService) FindOne(id uuid.UUID) (*models.Cart, error) {
+	return c.cartRepo.FindById(id)
 }

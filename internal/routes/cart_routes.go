@@ -28,6 +28,7 @@ func (r *CartRoutes) Setup() {
 	rtr := r.handler.Gin.Group("/api/cart")
 	{
 		rtr.GET("", r.jwtAuth.Handler, r.ctrl.FetchCart)
-		rtr.POST("/add", r.jwtAuth.Handler, r.ctrl.AddToCart)
+		rtr.DELETE(":cartId", r.jwtAuth.Handler, r.ctrl.DeleteCart)
+		rtr.POST("", r.jwtAuth.Handler, r.ctrl.AddToCart)
 	}
 }
