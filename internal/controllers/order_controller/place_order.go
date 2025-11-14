@@ -22,6 +22,8 @@ func (ctrl *OrderController) PlaceOrder(c *gin.Context) {
 		return
 	}
 
+	request.PrintBody(ctrl.logger, body)
+
 	tp, err := request.ExtractAccessTokenPayload(c)
 	if err != nil {
 		res.ResErrUnauthorized(err)
@@ -41,6 +43,7 @@ func (ctrl *OrderController) PlaceOrder(c *gin.Context) {
 	for _, item := range body.Items {
 		cartIds = append(cartIds, item.CartID)
 		prod, err := ctrl.productService.FindById(item.ProductID)
+		request.PrintBody(ctrl.logger, prod)
 		if err != nil {
 			res.ResInternalServerErr(err)
 			return

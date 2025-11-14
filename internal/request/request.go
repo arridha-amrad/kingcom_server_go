@@ -1,6 +1,7 @@
 package request
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"kingcom_api/internal/constants"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"go.uber.org/zap"
 )
 
 func GetBody[T any](c *gin.Context, validate *lib.Validator) (*T, map[string]string) {
@@ -34,6 +36,15 @@ func GetBody[T any](c *gin.Context, validate *lib.Validator) (*T, map[string]str
 		return nil, msgErrors
 	}
 	return &input, nil
+}
+
+func PrintBody(logger *lib.Logger, input any) {
+	jsonBody, err := json.MarshalIndent(input, "", "  ")
+	if err != nil {
+		logger.Error("failed to marshal body", zap.Error(err))
+		return
+	}
+	logger.Info("CreateOrder body", zap.String("body", string(jsonBody)))
 }
 
 func ExtractAccessTokenPayload(c *gin.Context) (*authservice.JWTPayload, error) {

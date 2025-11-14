@@ -28,6 +28,6 @@ func (o *OrderRoutes) Setup() {
 	rtr := o.handler.Gin.Group("/api/order")
 	{
 		rtr.POST("", o.jwtAuth.Handler, o.ctrl.PlaceOrder)
-		rtr.GET("/user", o.jwtAuth.Handler, o.ctrl.FetchUserOrders)
+		rtr.GET("", o.jwtAuth.Handler, o.ctrl.FetchUserOrders)
 	}
 }

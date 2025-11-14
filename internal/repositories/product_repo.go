@@ -35,7 +35,7 @@ func (p *productRepository) InsertProduct(product *models.Product) error {
 	return p.Create(product).Error
 }
 
-func (p productRepository) FindMany(filter FindManyFilter) (*ProductsWithTotal, error) {
+func (p *productRepository) FindMany(filter FindManyFilter) (*ProductsWithTotal, error) {
 	var products []models.Product
 	var totalProducts int64
 
@@ -60,9 +60,9 @@ func (p productRepository) FindMany(filter FindManyFilter) (*ProductsWithTotal, 
 	return &result, nil
 }
 
-func (p productRepository) FindById(id uuid.UUID) (*models.Product, error) {
+func (p *productRepository) FindById(id uuid.UUID) (*models.Product, error) {
 	var product models.Product
-	if err := p.DB.Create(&product).Error; err != nil {
+	if err := p.DB.Where("id = ?", id).First(&product).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
