@@ -4,9 +4,6 @@ import (
 	authcontroller "kingcom_api/internal/controllers/auth_controller"
 	"kingcom_api/internal/lib"
 	"kingcom_api/internal/middlewares"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type AuthRoutes struct {
@@ -30,9 +27,6 @@ func NewAuthRoutes(
 func (r *AuthRoutes) Setup() {
 	rtr := r.handler.Gin.Group("/api/auth")
 	{
-		rtr.GET("/healthz", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{"message": "mantapp"})
-		})
 		rtr.POST("/forgot-password", r.ctrl.ForgotPassword)
 		rtr.POST("/login", r.ctrl.Login)
 		rtr.POST("/logout", r.jwtAuth.Handler, r.ctrl.Logout)
