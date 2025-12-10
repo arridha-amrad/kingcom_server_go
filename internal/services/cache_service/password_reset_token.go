@@ -10,7 +10,7 @@ import (
 
 const (
 	prefixPwdResetToken = "pwdReset:%s"
-	ttlPwdReset         = 30 * time.Minute
+	ttlPwdReset         = time.Hour * 24
 )
 
 func (s *cacheService) FindPasswordResetToken(ctx context.Context, hashedToken string) (*PasswordResetTokenPayload, error) {

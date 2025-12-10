@@ -92,7 +92,7 @@ func (s *mailService) SendVerificationEmail(ctx context.Context, params Verifica
 
 func (s *mailService) SendPasswordResetEmail(ctx context.Context, params PasswordResetParams) error {
 	subject := "Password reset"
-	body := fmt.Sprintf("Hello %s.\nClick here to reset your password: %s", params.Name, params.Token)
+	body := fmt.Sprintf("Hello %s.\nClick here to reset your password: %s/reset-password?token=%s", params.Name, s.env.ClientUrl, params.Token)
 	return s.sendEmail(ctx, params.Email, subject, body)
 }
 

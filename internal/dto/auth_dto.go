@@ -24,7 +24,7 @@ type ResendVerification struct {
 type ResetPassword struct {
 	Token           string `json:"token" validate:"required"`
 	Password        string `json:"password" validate:"required,strongPassword"`
-	ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=Password"`
+	ConfirmPassword string `json:"confirmPassword" validate:"required,eqfield=Password"`
 }
 
 type VerifyNewAccount struct {

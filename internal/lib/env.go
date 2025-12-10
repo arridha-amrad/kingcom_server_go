@@ -12,6 +12,7 @@ type Env struct {
 	JwtSecret        string             `mapstructure:"JWT_SECRET"`
 	AppTitle         string             `mapstructure:"APP_TITLE"`
 	AppUrl           string             `mapstructure:"APP_URL"`
+	ClientUrl        string             `mapstructure:"CLIENT_URL"`
 	RajaOngkirAPIKey string             `mapstructure:"RAJA_ONGKIR_API_KEY"`
 	RedisUrl         string             `mapstructure:"REDIS_URL"`
 	LogOutput        string             `mapstructure:"LOG_OUTPUT"`
