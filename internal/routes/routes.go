@@ -16,6 +16,7 @@ func NewRoutes(
 	shippingRoutes *ShippingRoutes,
 	cartRoutes *CartRoutes,
 	orderRoutes *OrderRoutes,
+	midtransRoutes *MidtransRoutes,
 ) *Routes {
 	return &Routes{
 		authRoutes,
@@ -23,6 +24,7 @@ func NewRoutes(
 		shippingRoutes,
 		cartRoutes,
 		orderRoutes,
+		midtransRoutes,
 	}
 }
 
@@ -38,5 +40,6 @@ var Module = fx.Options(
 	fx.Provide(NewShippingRoutes),
 	fx.Provide(NewCartRoutes),
 	fx.Provide(NewOrderRoutes),
+	fx.Provide(NewMidtransRoutes),
 	fx.Provide(NewRoutes),
 )

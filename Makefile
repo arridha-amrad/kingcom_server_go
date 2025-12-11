@@ -11,7 +11,7 @@ DB_URL = postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?s
 # Contoh penggunaan: make migrate-create name=create_users_table
 migrate-create:
 	@if [ -z "$(name)" ]; then \
-		echo "❌ Error: Harap berikan nama migrasi, contoh: make migrate-create name=create_users_table"; \
+		echo "❌ Error: Please enter migration name, i.e: make migrate-create name=create_users_table"; \
 		exit 1; \
 	fi
 	$(MIGRATE) create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
@@ -47,6 +47,9 @@ mocks:
 
 seed:
 	go run cmd/seed/main.go
+
+run-ngrok:
+	ngrok http --url=katy-illegible-min.ngrok-free.app $(SERVER_PORT)
 
 run:
 # 	go run cmd/main.go

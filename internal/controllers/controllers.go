@@ -16,4 +16,5 @@ var Module = fx.Options(
 	fx.Provide(shippingcontroller.New),
 	fx.Provide(cartcontroller.New),
 	fx.Provide(orderController.New),
+	fx.Provide(NewMidtransController),
 )

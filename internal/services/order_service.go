@@ -18,6 +18,8 @@ type orderService struct {
 type OrderService interface {
 	PlaceOrder(order *models.Order, cartsIds []uuid.UUID) error
 	FindByUserId(userId uuid.UUID) (*[]models.Order, error)
+	FindById(id uuid.UUID) (*models.Order, error)
+	Update(order *models.Order) error
 }
 
 func NewOrderService(
@@ -30,6 +32,14 @@ func NewOrderService(
 		Database:  db,
 		cartRepo:  cartRepo,
 	}
+}
+
+func (o *orderService) Update(order *models.Order) error {
+	return o.orderRepo.Update(order)
+}
+
+func (o *orderService) FindById(id uuid.UUID) (*models.Order, error) {
+	return o.orderRepo.FindById(id)
 }
 
 func (o *orderService) PlaceOrder(order *models.Order, cartsIds []uuid.UUID) error {

@@ -1,0 +1,2 @@
+ALTER TABLE carts
+DROP COLUMN IF EXISTS is_checked;

@@ -17,6 +17,8 @@ type OrderRepository interface {
 	Create(order *models.Order) error
 	WithTrx(tx *gorm.DB) OrderRepository
 	FindByUserId(userId uuid.UUID) (*[]models.Order, error)
+	FindById(id uuid.UUID) (*models.Order, error)
+	Update(order *models.Order) error
 }
 
 func NewOrderRepository(
@@ -27,6 +29,28 @@ func NewOrderRepository(
 		Database: db,
 		logger:   logger,
 	}
+}
+
+func (o *orderRepository) Update(order *models.Order) error {
+	return o.DB.Save(order).Error
+}
+
+func (o *orderRepository) FindById(id uuid.UUID) (*models.Order, error) {
+	var order models.Order
+	if err := o.DB.
+		Where("id = ?", id).
+		Preload("OrderItems").
+		Preload("OrderItems.Product").
+		Preload("Shipping").
+		Preload("User").
+		Find(&order).
+		Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &order, nil
 }
 
 func (o *orderRepository) Create(order *models.Order) error {

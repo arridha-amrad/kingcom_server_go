@@ -75,7 +75,11 @@ func (c *cartRepository) Add(cart *models.Cart) error {
 
 func (c *cartRepository) FindWithProduct(userId uuid.UUID) (*[]models.Cart, error) {
 	var carts []models.Cart
-	if err := c.DB.Preload("Product").Preload("Product.Images").Find(&carts).Error; err != nil {
+	if err := c.DB.
+		Where("user_id = ?", userId).
+		Preload("Product").
+		Preload("Product.Images").
+		Find(&carts).Error; err != nil {
 		return nil, err
 	}
 	return &carts, nil

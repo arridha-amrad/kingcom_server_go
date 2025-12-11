@@ -36,13 +36,16 @@ type Order struct {
 }
 
 type OrderItem struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	Quantity  int       `gorm:"not null" json:"quantity"`
-	CreatedAt time.Time `gorm:"column:created_at" json:"-"`
-	ProductID uuid.UUID `gorm:"column:product_id;not null" json:"-"`
-	Product   Product   `gorm:"foreignKey:ProductID" json:"product"`
-	OrderID   uuid.UUID `gorm:"column:order_id;not null;constraint:onDelete:CASCADE;" json:"-"`
-	Order     Order     `gorm:"foreignKey:OrderID" json:"-"`
+	ID                uint      `gorm:"primaryKey" json:"id"`
+	Quantity          int       `gorm:"not null" json:"quantity"`
+	CreatedAt         time.Time `gorm:"column:created_at" json:"-"`
+	PriceAtOrder      float64   `gorm:"column:price_at_order;not null" json:"priceAtOrder"`
+	DiscountAtOrder   int       `gorm:"column:discount_at_order;not null" json:"discountAtOrder"`
+	FinalPriceAtOrder float64   `gorm:"column:final_price_at_order;not null" json:"finalPriceAtOrder"`
+	ProductID         uuid.UUID `gorm:"column:product_id;not null" json:"-"`
+	Product           Product   `gorm:"foreignKey:ProductID" json:"product"`
+	OrderID           uuid.UUID `gorm:"column:order_id;not null;constraint:onDelete:CASCADE;" json:"-"`
+	Order             Order     `gorm:"foreignKey:OrderID" json:"-"`
 }
 
 type OrderShipping struct {

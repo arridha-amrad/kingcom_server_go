@@ -71,7 +71,13 @@ func (ctrl *OrderController) PlaceOrder(c *gin.Context) {
 
 	orderItems := make([]models.OrderItem, 0, len(body.Items))
 	for _, item := range body.Items {
-		orderItems = append(orderItems, models.OrderItem{Quantity: item.Quantity, ProductID: item.ProductID})
+		orderItems = append(orderItems, models.OrderItem{
+			Quantity:          item.Quantity,
+			ProductID:         item.ProductID,
+			PriceAtOrder:      item.PriceAtOrder,
+			DiscountAtOrder:   item.DiscountAtOrder,
+			FinalPriceAtOrder: item.FinalPriceAtOrder,
+		})
 	}
 
 	order := models.Order{

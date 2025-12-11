@@ -19,7 +19,24 @@ type CreateOrder struct {
 }
 
 type Item struct {
-	CartID    uuid.UUID `json:"cartId"`
-	ProductID uuid.UUID `json:"productId"`
-	Quantity  int       `json:"quantity"`
+	CartID            uuid.UUID `json:"cartId"`
+	ProductID         uuid.UUID `json:"productId"`
+	Quantity          int       `json:"quantity"`
+	PriceAtOrder      float64   `json:"priceAtOrder"`
+	DiscountAtOrder   int       `json:"discountAtOrder"`
+	FinalPriceAtOrder float64   `json:"finalPriceAtOrder"`
+}
+
+type CreateTransactionTokenParam struct {
+	OrderId string `json:"orderId" validate:"required"`
+}
+
+type MidtransNotificationParams struct {
+	TransactionStatus string `json:"transaction_status"`
+	StatusCode        string `json:"status_code"`
+	OrderID           string `json:"order_id"`
+	GrossAmount       string `json:"gross_amount"`
+	PaymentType       string `json:"payment_type"`
+	SignatureKey      string `json:"signature_key"`
+	SettlementTime    string `json:"settlement_time"`
 }

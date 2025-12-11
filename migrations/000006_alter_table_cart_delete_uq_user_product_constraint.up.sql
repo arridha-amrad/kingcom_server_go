@@ -1,0 +1,2 @@
+ALTER TABLE carts
+DROP CONSTRAINT IF EXISTS uq_user_product;

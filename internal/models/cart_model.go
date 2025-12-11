@@ -10,6 +10,7 @@ import (
 type Cart struct {
 	ID        uuid.UUID `gorm:"column:id;type:uuid;primaryKey" json:"id"`
 	Quantity  int       `gorm:"not null;check:quantity > 0" json:"quantity"`
+	IsChecked bool      `gorm:"column:is_checked;not null;default:true" json:"isChecked"`
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"`
 	UserID    uuid.UUID `gorm:"column:user_id;type:uuid;not null;uniqueIndex:idx_user_product" json:"-"`
